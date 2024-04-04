@@ -6,7 +6,7 @@ Config.rpmlimiter = 45 -- Recommended values: 35-55
 -- The lower the number, the more the engine will rev
 -- Increase this number to make the engine rev less
 
-Config.speedlimiter = false -- Enable/Disable speed limiter
+Config.speedlimiter = true -- Enable/Disable speed limiter
 Config.defaultspeedlimit = 45 -- Default speed limit if street is not found in the list
 Config.speedunits = 'mph' -- Speed units (mph or km/h)
 
@@ -15,7 +15,8 @@ Config.notifyengaged = 'Sunday Driving Engaged' -- Notification description when
 Config.notifydisengaged = 'Sunday Driving Disengaged' -- Notification description when script is disengaged
 
 
-Config.streets = {
+Config.streets = {  -- Add extra streets here that you want toapply a speed limit to. Otherwise unlisted streets will use default speed limit
+
     { name = 'Great Ocean Hwy', speed = 90 },
     { name = 'Senora Freeway', speed = 90 },
     { name = 'Olympic Fwy', speed = 90 },
