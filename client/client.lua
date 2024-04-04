@@ -1,5 +1,11 @@
 local enabled = false
 
+if Config.speedunits == 'km/h' then
+    speedMultiplier = 3.6
+else    
+    speedMultiplier = 2.236936
+end
+
 local function EngageSpeedLimit()
     CreateThread(function()
         while enabled do
@@ -18,12 +24,6 @@ local function EngageSpeedLimit()
                     else
                         speedLimit = Config.defaultspeedlimit
                     end
-                end
-
-                if Config.speedunits == 'km/h' then
-                    speedMultiplier = 3.6
-                else    
-                    speedMultiplier = 2.236936
                 end
 
                 if GetEntitySpeed(cache.vehicle) * speedMultiplier <= speedLimit then
