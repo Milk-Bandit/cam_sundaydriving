@@ -1,17 +1,28 @@
 -- Global variables
 local sundayDrivingEnabled = false
 local speedMultiplier = (Config.speedunits == 'km/h') and 3.6 or 2.236936
+local speedLimit = Config.defaultspeedlimit
 
 -- Function to calculate speed limit based on street name
-local function CalculateSpeedLimit(streetName)
-    local speedLimit = Config.defaultspeedlimit
-    for i = 1, #Config.streets do
-        if streetName == Config.streets[i].name then
-            speedLimit = Config.streets[i].speed
-            break
+local function CalculateSpeedLimit()
+    CreateThread(function()
+        while sundayDrivingEnabled do
+            speedLimit = Config.defaultspeedlimit
+            local pos = GetEntityCoords(cache.ped)
+            local street = GetStreetNameAtCoord(pos.x, pos.y, pos.z)
+            local streetName = GetStreetNameFromHashKey(street)
+            for i = 1, #Config.streets do
+                if streetName == Config.streets[i].name then
+                    speedLimit = Config.streets[i].speed
+                    break
+                end
+            end
+            Wait(1000)
         end
-    end
-    return speedLimit
+        if not sundayDrivingEnabled then
+            SetVehicleMaxSpeed(cache.vehicle, 300 / speedMultiplier)
+        end
+    end)
 end
 
 -- Function to apply speed limit to vehicle
@@ -31,12 +42,8 @@ local function EngageDrivingLimits()
     while sundayDrivingEnabled do
         if cache.seat then
             local veh = cache.vehicle
-            local pos = GetEntityCoords(cache.ped)
-            local street = GetStreetNameAtCoord(pos.x, pos.y, pos.z)
-            local streetName = GetStreetNameFromHashKey(street)
             -- Apply speed limit
             if Config.speedlimiter then
-                local speedLimit = CalculateSpeedLimit(streetName)
                 ApplySpeedLimit(veh, speedLimit)
             end
             -- Apply RPM limit
@@ -45,10 +52,7 @@ local function EngageDrivingLimits()
                 SetVehicleCurrentRpm(veh, maxRpm)
             end
         end
-        Wait(100)
-    end
-    if not sundayDrivingEnabled then
-        SetVehicleMaxSpeed(cache.vehicle, 300 / speedMultiplier)
+        Wait(10)
     end
 end
 
@@ -61,6 +65,7 @@ lib.addKeybind({
         if cache.seat ~= -1 then
             return
         end
+        CalculateSpeedLimit()
         EngageDrivingLimits()
     end
 })
