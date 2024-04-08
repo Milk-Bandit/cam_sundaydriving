@@ -7,20 +7,29 @@ local speedLimit = Config.defaultspeedlimit
 local function CalculateSpeedLimit()
     CreateThread(function()
         while sundayDrivingEnabled do
-            speedLimit = Config.defaultspeedlimit
-            local pos = GetEntityCoords(cache.ped)
-            local street = GetStreetNameAtCoord(pos.x, pos.y, pos.z)
-            local streetName = GetStreetNameFromHashKey(street)
-            for i = 1, #Config.streets do
-                if streetName == Config.streets[i].name then
-                    speedLimit = Config.streets[i].speed
-                    break
+            local currentSpeedLimit = speedLimit
+            if cache.seat then
+                speedLimit = Config.defaultspeedlimit
+                local pos = GetEntityCoords(cache.ped)
+                local street = GetStreetNameAtCoord(pos.x, pos.y, pos.z)
+                local streetName = GetStreetNameFromHashKey(street)
+                for i = 1, #Config.streets do
+                    if streetName == Config.streets[i].name then
+                        speedLimit = Config.streets[i].speed
+                        break
+                    end
                 end
+            end
+            -- Notify player if speed limit changes
+            if currentSpeedLimit ~= speedLimit then 
+                local notifyType = (GetEntitySpeed(cache.vehicle) * speedMultiplier > speedLimit) and 'warning' or 'inform'
+                lib.notify({description = string.format(Config.notifyspeedlimit, speedLimit), type = notifyType})
             end
             Wait(1000)
         end
+        -- Reset speed limit to default when Sunday driving is disengaged
         if not sundayDrivingEnabled then
-            SetVehicleMaxSpeed(cache.vehicle, 300 / speedMultiplier)
+            SetVehicleMaxSpeed(cache.vehicle, Config.topspeed / speedMultiplier)
         end
     end)
 end
@@ -65,7 +74,17 @@ lib.addKeybind({
         if cache.seat ~= -1 then
             return
         end
+        if Config.cruisehudenabled then
+            TriggerEvent('seatbelt:client:ToggleCruise')
+        end
         CalculateSpeedLimit()
         EngageDrivingLimits()
     end
 })
+
+-- Check when player enters vehicle and Sunday driving is engaged for cruise control display on QB based HUD's
+lib.onCache('seat', function(value)
+    if value == -1 and sundayDrivingEnabled and Config.cruisehudenabled then 
+        TriggerEvent('seatbelt:client:ToggleCruise')
+    end
+end)
