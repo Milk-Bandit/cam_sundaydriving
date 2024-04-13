@@ -3,7 +3,7 @@ games { 'gta5' }
 lua54 'yes'
 
 description 'cam_sundaydriving'
-version '1.2.0'
+version '1.2.2'
 author 'Milk Bandit'
 
 shared_script {
